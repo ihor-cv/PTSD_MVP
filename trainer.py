@@ -1,3 +1,4 @@
+import os
 import torch
 import librosa
 import evaluate
@@ -10,8 +11,10 @@ from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
 
 from datasets import load_dataset, DatasetDict
 
+# Get the absolute path of the current script file (e.g., main.py or train.py)
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 # DATA LOADING
-AUDIO_ROOT = "E:/Project/MVP_PTSD/INTER"  # <- set this to your real audio root
 asr_dataset = DatasetDict()
 
 train_set = load_dataset("csv", data_files='./dataset/train.csv', cache_dir='./data/cache')['train']
@@ -49,7 +52,7 @@ max_input_length = MAX_DURATION_IN_SECONDS * 16000
 
 def prepare_dataset(batch):
     # load a file
-    audio, sr = librosa.load(batch['path'])
+    audio, sr = librosa.load(batch["path"])
 
     # compute log-Mel input features from input audio array
     batch["input_features"] = feature_extractor(audio, sampling_rate=16_000).input_features[0]
@@ -76,7 +79,9 @@ def filter_labels(labels_length):
     return labels_length < max_label_length
 
 def fix_path(batch):
-    batch["path"] = AUDIO_ROOT + batch["path"]  # append real prefix to all relative paths
+    # Remove leading slash from path in CSV and join with project root
+    relative_path = batch["path"].lstrip("/\\")
+    batch["path"] = os.path.normpath(os.path.join(PROJECT_ROOT, relative_path))
     return batch
 
 asr_dataset = asr_dataset.map(fix_path)
