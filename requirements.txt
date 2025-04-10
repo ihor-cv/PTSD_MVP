@@ -1,0 +1,10 @@
+datasets >=2.6.1
+evaluate
+transformers
+librosa
+jiwer
+torch
+tensorboard
+openai-whisper
+soundfile
+ffmpeg-python
